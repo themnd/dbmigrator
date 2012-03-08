@@ -17,6 +17,8 @@ public class DBMigrator
   private static final String PORT_OPT = "P";
   private static final String DATABASE_OPT = "d";
   private static final String DROPDB_OPT = "dropdb";
+  private static final String CHECK_OPT = "check";
+  private static final String NOEXECUTE_OPT = "noexecute";
 
   public static void main(String[] args)
   {
@@ -40,10 +42,6 @@ public class DBMigrator
     String pwd = (String) options.valueOf(PASSWORD_OPT);
     String source = (String) options.valueOf(SOURCE_OPT);
     
-    System.out.println("user: " + user);
-    System.out.println("pwd: " + pwd);
-    System.out.println("source: " + source);
-    
     ScriptsCache scriptsCache = new ScriptsCache(source);
     SchemaMigrator migrator = new SchemaMigrator(
       new Connector(
@@ -55,9 +53,9 @@ public class DBMigrator
           .dbname((String)options.valueOf(DATABASE_OPT))
     ));
     
-    if (options.has(DROPDB_OPT)) {
-      migrator.dropdb(true);
-    }
+    migrator.dropdb(options.has(DROPDB_OPT));
+    migrator.check(options.has(CHECK_OPT));
+    migrator.noexecute(options.has(NOEXECUTE_OPT));
     
     return migrator.migrate(scriptsCache);
   }
@@ -109,6 +107,10 @@ public class DBMigrator
       .describedAs("db scripts sources");
     parser
       .accepts(DROPDB_OPT);
+    parser
+      .accepts(CHECK_OPT);
+    parser
+      .accepts(NOEXECUTE_OPT);
     return parser;
   }
 
